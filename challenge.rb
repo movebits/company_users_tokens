@@ -23,7 +23,7 @@ class VerifiedCollection
   end
 end
 
-# Collect valid User data
+# Collect user records
 class Users < VerifiedCollection
   def initialize
     super 'users.json'
@@ -43,7 +43,7 @@ class Users < VerifiedCollection
   end
 end
 
-# Collect valid Company Data
+# Collect company records
 class Companies < VerifiedCollection
   def initialize
     super 'companies.json'
@@ -59,7 +59,7 @@ class Companies < VerifiedCollection
   end
 end
 
-# Verify schema of parsed input data
+# Verify input fields
 class SchemaVerifier
   EMAIL_FIELD = /\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i
   def self.verify(input, required_fields)
@@ -118,7 +118,7 @@ class CompanyUsersAndTokens
     File.write('output.txt', companies_users.to_yaml)
   end
 
-  # Collect company data for output
+  # Output for companies and their users
   def companies_users
     @companies.map do |company|
       emailed_users, not_emailed_users, top_ups = company_users company
@@ -132,7 +132,7 @@ class CompanyUsersAndTokens
     end
   end
 
-  # Format user data
+  # Format users
   def format_users(users)
     sorted_users = users.sort_by { |user| user['last_name'] }
     sorted_users.map do |user|
@@ -145,7 +145,7 @@ class CompanyUsersAndTokens
     end
   end
 
-  # Find associated users by company and collect totals for topups
+  # Find users by company and collect totals for top-ups
   def company_users(company)
     emailed_users = []
     not_emailed_users = []
