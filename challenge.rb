@@ -14,7 +14,7 @@ class VerifiedCollection
 
   def read_file(file_name)
     File.read(file_name)
-  rescue StandardError, SystemCallError => e
+  rescue StandardError => e
     puts "Reading the file an error occured. #{e.message}"
   end
 
@@ -66,7 +66,7 @@ class SchemaVerifier
     begin
       parsed_input = JSON.parse(input)
     rescue JSON::ParserError => e
-       puts "Invalid JSON format #{e.message}"
+      puts "Invalid JSON format #{e.message}"
     end
 
     valid_input = parsed_input.select do |record|
@@ -122,10 +122,10 @@ class CompanyUsersAndTokens
       {
         "Company Id": company['id'],
         "Company Name": company['name'],
-        "Users Emailed": format_users(emailed_users),
-        "Users Not Emailed": format_users(not_emailed_users),
+        "Users Emailed": emailed_users.empty? ? nil : format_users(emailed_users),
+        "Users Not Emailed": not_emailed_users.empty? ? nil : format_users(not_emailed_users),
         "Total amount of top ups for #{company['name']}": top_ups
-      }.transform_keys(&:to_s)
+      }.compact.transform_keys(&:to_s)
     end
   end
 
