@@ -5,11 +5,11 @@ require 'yaml'
 
 # Base class for users and companies
 class VerifiedCollection
-  attr_accessor :list
+  attr_accessor :verified
 
   def initialize(file_name)
     json_data = read_file file_name
-    @list = verify_data json_data
+    @verified = verify_data json_data
   end
 
   def read_file(file_name)
@@ -104,8 +104,8 @@ end
 # Process output file for companies and their users
 class CompanyUsersAndTokens
   def initialize
-    @users = Users.new.list
-    @companies = Companies.new.list
+    @users = Users.new.verified
+    @companies = Companies.new.verified
   end
 
   def execute
@@ -113,8 +113,6 @@ class CompanyUsersAndTokens
       puts 'No valid data available.'
       return false
     end
-
-    puts companies_users.to_yaml
     File.write('output.txt', companies_users.to_yaml)
   end
 
