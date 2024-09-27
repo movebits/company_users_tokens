@@ -5,7 +5,7 @@ require 'yaml'
 
 # Base class for users and companies
 class VerifiedCollection
-  attr_accessor :verified
+  attr_reader :verified
 
   def initialize(file_name)
     json_data = read_file file_name
