@@ -109,7 +109,10 @@ class CompanyUsersAndTokens
   end
 
   def execute
-    return false, 'No valid data available' if @users.empty? || @companies.empty?
+    if @users.empty? || @companies.empty?
+      puts 'No valid data available.'
+      return false
+    end
 
     puts companies_users.to_yaml
     File.write('output.txt', companies_users.to_yaml)
