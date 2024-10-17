@@ -5,16 +5,16 @@ require 'yaml'
 
 # Base class for users and companies
 class VerifiedCollection
-  attr_accessor :list
+  attr_reader :verified
 
   def initialize(file_name)
     json_data = read_file file_name
-    @list = verify_data json_data
+    @verified = verify_data json_data
   end
 
   def read_file(file_name)
     File.read(file_name)
-  rescue StandardError, SystemCallError => e
+  rescue StandardError => e
     puts "Reading the file an error occured. #{e.message}"
   end
 
@@ -23,7 +23,7 @@ class VerifiedCollection
   end
 end
 
-# Collect valid User data
+# Collect user records
 class Users < VerifiedCollection
   def initialize
     super 'users.json'
@@ -43,7 +43,7 @@ class Users < VerifiedCollection
   end
 end
 
-# Collect valid Company Data
+# Collect company records
 class Companies < VerifiedCollection
   def initialize
     super 'companies.json'
@@ -59,14 +59,14 @@ class Companies < VerifiedCollection
   end
 end
 
-# Verify schema of parsed input data
+# Verify input fields
 class SchemaVerifier
   EMAIL_FIELD = /\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i
   def self.verify(input, required_fields)
     begin
       parsed_input = JSON.parse(input)
     rescue JSON::ParserError => e
-       puts "Invalid JSON format #{e.message}"
+      puts "Invalid JSON format #{e.message}"
     end
 
     valid_input = parsed_input.select do |record|
@@ -104,32 +104,33 @@ end
 # Process output file for companies and their users
 class CompanyUsersAndTokens
   def initialize
-    @users = Users.new.list
-    @companies = Companies.new.list
+    @users = Users.new.verified
+    @companies = Companies.new.verified
   end
 
   def execute
-    return false, 'No valid data available' if @users.empty? || @companies.empty?
-
-    puts companies_users.to_yaml
+    if @users.empty? || @companies.empty?
+      puts 'No valid data available.'
+      return false
+    end
     File.write('output.txt', companies_users.to_yaml)
   end
 
-  # Collect company data for output
+  # Output for companies and their users
   def companies_users
     @companies.map do |company|
       emailed_users, not_emailed_users, top_ups = company_users company
       {
         "Company Id": company['id'],
         "Company Name": company['name'],
-        "Users Emailed": format_users(emailed_users),
-        "Users Not Emailed": format_users(not_emailed_users),
+        "Users Emailed": emailed_users.empty? ? nil : format_users(emailed_users),
+        "Users Not Emailed": not_emailed_users.empty? ? nil : format_users(not_emailed_users),
         "Total amount of top ups for #{company['name']}": top_ups
-      }.transform_keys(&:to_s)
+      }.compact.transform_keys(&:to_s)
     end
   end
 
-  # Format user data
+  # Format users
   def format_users(users)
     sorted_users = users.sort_by { |user| user['last_name'] }
     sorted_users.map do |user|
@@ -142,7 +143,7 @@ class CompanyUsersAndTokens
     end
   end
 
-  # Find associated users by company and collect totals for topups
+  # Find users by company and collect totals for top-ups
   def company_users(company)
     emailed_users = []
     not_emailed_users = []
